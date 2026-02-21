@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>YKTKTCY</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* 全体のデザイン */
+  body {
+    font-family: "Noto Sans JP", sans-serif;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(0deg, #40120b, #f2a24a);
+    min-height: 100vh; /* 画面全体の高さを確保 */
+    position: relative; /* 背景の装飾(shape)を配置するため */
+    overflow: hidden; /* スクロールバーを隠す */
+  }
+  /* カーソルを表示しない */
+  *{
+    cursor: none !important;
+  }
+
+/* カスタムカーソルのスタイル */ 
+  #custom-cursor { 
+    position: fixed; 
+    top: 0; 
+    left: 0;
+    width: 15px; 
+    height: 15px; 
+    background: rgba(255, 255, 255, 1.0);
+    border: 1px solid #8c2d1c; 
+    border-radius: 50%; 
+    pointer-events: none; /* カーソルがクリック判定を邪魔しないように */
+    z-index: 9999; 
+    transform: translate(-50%, -50%); /* カーソルの中心に位置合わせ */
+    transition: transform 0.05s ease; /* 動きに滑らかさを追加 */
+  } 
+
+  /* 背景の装飾 */
+  /* 背景に置く図形全てに必要な設定 */
+  .background-shapes {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+  }
+  /* 円に共通する設定 */
+  .bg-shape-circle {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.15;
+  }
+  /* 具体的な円それぞれの設定 */ 
+  .cicle1 {
+    width: 300px;
+    height: 300px;
+    background: #bf3e2f;
+    top: -100px;
+    left: -100px;
+  }
+
+  .cicle2 {
+    width: 200px;
+    height: 200px;
+    background: #8c2d1c;
+    bottom: 0px;
+    right: 20px;
+  }
+
+  .cicle3 {
+    width: 150px;
+    height: 150px;
+    background: #d95f2e;
+    top: 50px;
+    left: 70px;
+  }
+
+  /* 表示するコンテンツの設定 */
+  .content {
+    position: relative;
+    z-index: 1;
+    margin-top: 100px;
+  }
+
+  /* タイトル */
+  h1 {
+    font-size: 48px;
+    color: #fff;
+    margin-bottom: 15px;
+  }
+
+  /* instagramのアイコン */
+  .insta-link svg {
+    transition: transform 0.2s ease;
+    cursor: pointer;
+  }
+  .insta-link {
+    display: inline-block;
+    margin-bottom: 5px;
+  }
+  .insta-link svg:hover {
+    transform: scale(1.1);
+  }
+
+  /* テキスト(段落にはpを使う)*/
+  p {
+    font-size: 16px;
+    color: #fef6e4;
+    margin-bottom: 30px;
+  }
+  
+  /* ボタンのデザイン(リンクにはaを使う)*/
+  a.button {
+    display: inline-block;
+    padding: 12px 24px;
+    background: #8c2d1c;
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 18px;
+    transition: background 0.3s ease;
+  }
+  a.button:hover {
+    background: #f2a24a;
+  }
+
+</style>
+</head>
+
+<body>
+<!-- 背景の情報 -->
+<div class="background-shapes">
+  <div class="bg-shape-circle cicle1"></div>
+  <div class="bg-shape-circle cicle2"></div>
+  <div class="bg-shape-circle cicle3"></div>
+</div>
+<!-- コンテンツの情報 -->
+<div class="content">
+  <h1>@YKTKTCY</h1>
+  <!-- 新しいタブで開く -->
+  <a href="https://www.instagram.com/yktktcy/" target="_blank" class="insta-link">
+    <!-- アイコンを作成する -->
+    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none">
+      <defs>
+        <linearGradient id="instaIcon" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#f58529"/>
+          <stop offset="50%" stop-color="#dd2a7b"/>
+          <stop offset="100%" stop-color="#8134af"/>
+        </linearGradient>
+      </defs>
+      <!-- グラデーションを適用する -->
+      <rect width="24" height="24" rx="6" fill="url(#instaIcon)"/> 
+      <path d="M12 7.3A4.7 4.7 0 1 0 16.7 12 4.71 4.71 0 0 0 12 7.3Zm0 7.7A3 3 0 1 1 15 12a3 3 0 0 1-3 3Zm4.9-8.4a1.1 1.1 0 1 1-1.1-1.1 1.1 1.1 0 0 1 1.1 1.1Z" fill="#fff"/>
+    </svg>
+  </a>
+  <p>日々の食事を記録するためのカレンダー</p>
+  <a href="calender.html" class="button">食事カレンダー</a>
+</div>
+<!-- カスタムカーソルの要素 --> 
+<div id="custom-cursor"></div> 
+<script>
+  const cursor = document.getElementById("custom-cursor");
+  const circles = document.querySelectorAll('.bg-shape-circle');
+
+  // カーソル追従
+  document.addEventListener("mousemove", (e) => {
+    cursor.style.top = `${e.clientY}px`;
+    cursor.style.left = `${e.clientX}px`;
+  });
+
+  // ランダム移動開始
+  circles.forEach(circle => floatAround(circle));
+
+  // 画面内を自由に漂うランダム移動
+  function floatAround(circle) {
+    const maxX = window.innerWidth;
+    const maxY = window.innerHeight;
+
+    // ランダム座標
+    const x = Math.random() * maxX - maxX / 2;
+    const y = Math.random() * maxY - maxY / 2;
+
+    // 円ごとに速度を変える（奥行き感）
+    const speed = 6000 + Math.random() * 4000;
+
+    circle.animate(
+      [{ transform: `translate(${x}px, ${y}px)` }],
+      {
+        duration: speed,
+        fill: "forwards",
+        easing: "ease-in-out"
+      }
+    ).onfinish = () => floatAround(circle);
+  }
+</script>
+
+
+</body>
+</html>

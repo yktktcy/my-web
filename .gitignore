@@ -1,0 +1,15 @@
+# --- Mac の不要ファイル ---
+.DS_Store
+
+# --- 元画像（HEIC）や重い素材は Git に入れない ---
+data_original/
+*.heic
+convert_low.sh
+
+# --- 自動生成キャッシュ ---
+cache/
+tmp/
+
+# --- ローカル設定ファイル ---
+*.local.json
+.env
