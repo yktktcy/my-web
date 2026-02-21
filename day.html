@@ -16,7 +16,7 @@
     background: linear-gradient(0deg, #40120b, #f2a24a);
     min-height: 100vh; /* 画面全体の高さを確保 */
     position: relative; /* 背景の装飾(shape)を配置するため */
-    overflow: hidden; 
+    /* overflow: hidden;  */
     /* スクロールバーを隠す */
   }
     /* カーソルを表示しない */
@@ -177,7 +177,7 @@ button{
     height: 60px;
   }
 
-  #week-range { font-weight: bold; margin: 10px 0; }
+  #day-label { font-weight: bold; margin: 10px 0; }
 
   /* ★ 追加：ヘッダーの日曜・土曜だけ色付け */
   th.sunday-header { background: #da5e5e; }
@@ -210,23 +210,17 @@ button{
    <div class="bg-shape-circle circle3"></div> 
 </div>
 <a href="index.html" class="button">前のページへ</a>
-<button onclick="goToThisWeek()">今週を表示</button>
-<button onclick="prevWeek()">前週</button>
-<button onclick="nextWeek()">次週</button>
-<input type="date" id="input-date" onchange="updateWeek()">
+<button onclick="goToToday()">今日</button>
+<button onclick="prevDay()">前日</button>
+<button onclick="nextDay()">翌日</button>
+<input type="date" id="input-date" onchange="updateDay()">
 <h2>食事カレンダー</h2>
-<p id="week-range"></p>
+<p id="day-label"></p>
 <table id="image-table">
   <thead>
     <tr>
       <th>分類</th>
-      <th class="sunday-header">日</th>
-      <th class="weekday-header">月</th>
-      <th class="weekday-header">火</th>
-      <th class="weekday-header">水</th>
-      <th class="weekday-header">木</th>
-      <th class="weekday-header">金</th>
-      <th class="saturday-header">土</th>
+      <th>画像</th>
     </tr>
   </thead>
   <tbody id="table-body"></tbody>
@@ -300,111 +294,106 @@ async function loadImagesForCell(dateStr, x) {
 }
 
 // ------------------------------
-async function generateTable(startDate) {
+async function generateTableForOneDay(date) {
   const tbody = document.getElementById("table-body");
+  const thead = document.querySelector("#image-table thead tr");
+
   tbody.innerHTML = "";
+  thead.innerHTML = "";
+
+  // --- ヘッダー行を作成（分類を横に並べる） ---
+  const thDate = document.createElement("th");
+  thDate.textContent = "日付";
+  thead.appendChild(thDate);
 
   for (const x of X_VALUES) {
-    const tr = document.createElement("tr");
+    const th = document.createElement("th");
+    th.textContent = X_LABELS[x];
+    thead.appendChild(th);
+  }
 
-    const labelTd = document.createElement("td");
-    labelTd.textContent = X_LABELS[x];
-    tr.appendChild(labelTd);
+  // --- 本体（1行だけ） ---
+  const tr = document.createElement("tr");
 
-    for (let offset = 0; offset < 7; offset++) {
-      const cellDate = new Date(startDate);
-      cellDate.setDate(startDate.getDate() + offset);
-      const dateStr = formatDate(cellDate);
+  // 日付セル
+  const tdDate = document.createElement("td");
+  tdDate.textContent = date.toLocaleDateString();
+  tr.appendChild(tdDate);
 
-      const td = document.createElement("td");
-      const cellImages = await loadImagesForCell(dateStr, x);
+  const dateStr = formatDate(date);
 
-      if (cellImages.length > 0) {
-        const tileCount = Math.ceil(Math.sqrt(cellImages.length));
-        const container = document.createElement("div");
-        container.className = "cell-container";
-        container.style.gridTemplateColumns = `repeat(${tileCount}, 1fr)`;
+  // 分類ごとに1セルずつ作る
+  for (const x of X_VALUES) {
+    const td = document.createElement("td");
+    const cellImages = await loadImagesForCell(dateStr, x);
 
-        cellImages.forEach(src => {
-          const img = document.createElement("img");
-          img.src = src;
-          img.className = "img-tile";
+    if (cellImages.length > 0) {
+      const tileCount = Math.ceil(Math.sqrt(cellImages.length));
+      const container = document.createElement("div");
+      container.className = "cell-container";
+      container.style.gridTemplateColumns = `repeat(${tileCount}, 1fr)`;
 
-          // ★ y を抽出して枠線色クラスを付与
-          const y = src.split("_")[2];
-          img.classList.add(`img-${y}`);
+      cellImages.forEach(src => {
+        const img = document.createElement("img");
+        img.src = src;
+        img.className = "img-tile";
 
-          // ★ Lightbox 用クリックイベント
-          img.onclick = () => openLightbox(src);
+        const y = src.split("_")[2];
+        img.classList.add(`img-${y}`);
 
-          container.appendChild(img);
-        });
+        img.onclick = () => openLightbox(src);
+        container.appendChild(img);
+      });
 
-        td.appendChild(container);
-      } else {
-        td.className = "no-image";
-        td.textContent = "No Image";
-      }
-
-      tr.appendChild(td);
+      td.appendChild(container);
+    } else {
+      td.className = "no-image";
+      td.textContent = "No Image";
     }
 
-    tbody.appendChild(tr);
+    tr.appendChild(td);
   }
+
+  tbody.appendChild(tr);
 }
 
-// ------------------------------
-async function updateWeek() {
+
+let currentDate = null;
+
+function updateDay() {
   const input = document.getElementById("input-date").value;
   if (!input) return;
 
-  const { start, end } = getWeekRange(input);
-  currentStartDate = start;
+  currentDate = new Date(input);
+  document.getElementById("day-label").textContent =
+    currentDate.toLocaleDateString();
 
-  document.getElementById("week-range").textContent =
-    `${start.toLocaleDateString()} 〜 ${end.toLocaleDateString()}`;
-
-  await generateTable(start);
+  generateTableForOneDay(currentDate);
 }
 
-// ------------------------------
-async function prevWeek() {
-  if (!currentStartDate) return;
-
-  currentStartDate = new Date(currentStartDate.getTime() - 7 * 86400000);
-  const end = new Date(currentStartDate.getTime() + 6 * 86400000);
-
-  document.getElementById("week-range").textContent =
-    `${currentStartDate.toLocaleDateString()} 〜 ${end.toLocaleDateString()}`;
-
-  await generateTable(currentStartDate);
+function prevDay() {
+  if (!currentDate) return;
+  currentDate = new Date(currentDate.getTime() - 86400000);
+  document.getElementById("day-label").textContent =
+    currentDate.toLocaleDateString();
+  generateTableForOneDay(currentDate);
 }
 
-// ------------------------------
-async function nextWeek() {
-  if (!currentStartDate) return;
-
-  currentStartDate = new Date(currentStartDate.getTime() + 7 * 86400000);
-  const end = new Date(currentStartDate.getTime() + 6 * 86400000);
-
-  document.getElementById("week-range").textContent =
-    `${currentStartDate.toLocaleDateString()} 〜 ${end.toLocaleDateString()}`;
-
-  await generateTable(currentStartDate);
+function nextDay() {
+  if (!currentDate) return;
+  currentDate = new Date(currentDate.getTime() + 86400000);
+  document.getElementById("day-label").textContent =
+    currentDate.toLocaleDateString();
+  generateTableForOneDay(currentDate);
 }
 
-// ------------------------------
-async function goToThisWeek() {
-  const today = new Date();
-  const { start, end } = getWeekRange(today);
-
-  currentStartDate = start;
-
-  document.getElementById("week-range").textContent =
-    `${start.toLocaleDateString()} 〜 ${end.toLocaleDateString()}`;
-
-  await generateTable(start);
+function goToToday() {
+  currentDate = new Date();
+  document.getElementById("day-label").textContent =
+    currentDate.toLocaleDateString();
+  generateTableForOneDay(currentDate);
 }
+
 
 // ------------------------------
 // ★ Lightbox 機能
@@ -420,30 +409,7 @@ function closeLightbox() {
 </script>
 </body>
 </html>
-<!-- <script>
-  const circles = document.querySelectorAll('.bg-shape-circle');
 
-  circles.forEach(circle => floatAround(circle));
-
-  function floatAround(circle) {
-    const maxX = window.innerWidth - circle.offsetWidth;
-    const maxY = window.innerHeight - circle.offsetHeight;
-
-    const x = Math.random() * maxX;
-    const y = Math.random() * maxY;
-
-    const speed = 6000 + Math.random() * 4000;
-
-    circle.animate(
-      [{ transform: `translate(${x}px, ${y}px)` }],
-      {
-        duration: speed,
-        fill: "forwards",
-        easing: "ease-in-out"
-      }
-    ).onfinish = () => floatAround(circle);
-  }
-</script> -->
 <!-- カスタムカーソルの要素 --> 
 <div id="custom-cursor"></div> 
 <script>
@@ -483,5 +449,5 @@ function closeLightbox() {
 </script>
 
 <script> 
-  window.onload = () => { goToThisWeek(); };
+  window.onload = () => { goToToday(); };
 </script>
